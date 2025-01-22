@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	Server    ServerConfig    `mapstructure:"run"`
@@ -14,11 +18,11 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Uri string `mapstructure:"uri"`
+	URI string `mapstructure:"uri"`
 }
 
 type MigrationConfig struct {
-	Uri string `mapstructure:"uri"`
+	URI string `mapstructure:"uri"`
 	Dir string `mapstructure:"dir"`
 }
 
@@ -32,7 +36,7 @@ func Load() (*Config, error) {
 	var cfg Config
 	err := viper.Unmarshal(&cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't unmarshal config: %w", err)
 	}
 
 	return &cfg, nil

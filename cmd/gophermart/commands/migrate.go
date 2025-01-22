@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -24,7 +25,7 @@ var migrateCmd = &cobra.Command{
 			return
 		}
 
-		if err := runMigrations(load.Migration.Uri, load.Migration.Dir); err != nil {
+		if err := runMigrations(load.Migration.URI, load.Migration.Dir); err != nil {
 			fmt.Printf("Error running migrations: %v\n", err)
 			return
 		}
@@ -66,7 +67,7 @@ func migrationLoadConfig() {
 
 func runMigrations(dsn, dir string) error {
 	m, err := migrate.New(
-		fmt.Sprintf("file://%s", dir),
+		"file://"+dir,
 		dsn)
 	if err != nil {
 		return fmt.Errorf("err from migration.New: %w", err)

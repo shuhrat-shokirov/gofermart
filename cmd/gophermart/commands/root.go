@@ -38,18 +38,8 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
-		splitAfter := strings.SplitAfter(cfg.Server.Address, ":")
-		if len(splitAfter) != 2 {
-			logger.Fatal("can't parse address", zap.String("address", cfg.Server.Address))
-		}
-
-		port, err := strconv.Atoi(splitAfter[1])
-		if err != nil {
-			logger.Fatal("can't parse port", zap.Error(err))
-		}
-
 		api := rest.NewRouter(rest.Config{
-			Port:   int64(port),
+			Port:   getPortFromAddress(cfg.Server.Address),
 			Logger: *logger.Sugar(),
 		})
 
@@ -57,19 +47,27 @@ var rootCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt)
 
 		//TODO: Implement graceful shutdown
-		//go func() {
-		//	<-stop
-		//	if err := newStore.Close(); err != nil {
-		//		conf.logger.Errorf("can't close store: %v", err)
-		//	}
-		//
-		//	os.Exit(0)
-		//}()
 
 		if err := api.Run(); err != nil {
 			logger.Fatal("can't run server", zap.Error(err))
 		}
 	},
+}
+
+func getPortFromAddress(address string) int64 {
+	const portSplitLen = 2
+
+	splitAfter := strings.SplitAfter(address, ":")
+	if len(splitAfter) != portSplitLen {
+		log.Fatalf("can't parse address: %s", address)
+	}
+
+	port, err := strconv.Atoi(splitAfter[1])
+	if err != nil {
+		log.Fatalf("can't parse port: %v", err)
+	}
+
+	return int64(port)
 }
 
 func Execute() {

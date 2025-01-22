@@ -14,6 +14,7 @@ var (
 	accrualSys string
 )
 
+//nolint:lll,goconst,gocritic,nolintlint
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "Path to the configuration file")
 	rootCmd.PersistentFlags().StringVarP(&runAddress, "a", "a", "", "Address and port to run the service (env: RUN_ADDRESS)")
