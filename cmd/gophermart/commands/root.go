@@ -12,7 +12,11 @@ import (
 	"go.uber.org/zap"
 
 	"gofermart/internal/gophermart/config"
+	"gofermart/internal/gophermart/core/application"
 	"gofermart/internal/gophermart/infra/api/rest"
+	"gofermart/internal/gophermart/infra/store"
+	"gofermart/internal/gophermart/infra/store/memory"
+	"gofermart/internal/gophermart/infra/store/postgresql"
 )
 
 var rootCmd = &cobra.Command{
@@ -38,7 +42,29 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
+		var (
+			memoryConfig = &memory.Config{}
+			dbConfig     *postgresql.Config
+		)
+
+		if cfg.DB.URI != "" {
+			dbConfig = &postgresql.Config{
+				Dsn: cfg.DB.URI,
+			}
+		}
+
+		newStore, err := store.NewStore(store.Config{
+			Memory:     memoryConfig,
+			Postgresql: dbConfig,
+		})
+		if err != nil {
+			logger.Fatal("can't create store", zap.Error(err))
+		}
+
+		newApplication := application.NewApplication(cfg.Secret, newStore)
+
 		api := rest.NewRouter(rest.Config{
+			Server: newApplication,
 			Port:   getPortFromAddress(cfg.Server.Address),
 			Logger: *logger.Sugar(),
 		})
@@ -46,7 +72,14 @@ var rootCmd = &cobra.Command{
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt)
 
-		//TODO: Implement graceful shutdown
+		go func() {
+			<-stop
+			if err := newStore.Close(); err != nil {
+				logger.Error("can't close store", zap.Error(err))
+			}
+
+			os.Exit(0)
+		}()
 
 		if err := api.Run(); err != nil {
 			logger.Fatal("can't run server", zap.Error(err))

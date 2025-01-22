@@ -2,9 +2,6 @@ package rest
 
 import (
 	"compress/gzip"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -97,36 +94,24 @@ func (h *handler) responseGzipMiddleware() gin.HandlerFunc {
 	}
 }
 
-func (h *handler) encryptionMiddleware() gin.HandlerFunc {
+func (h *handler) validationJWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if h.hashKey == "" {
-			c.Next()
+		cookie, err := c.Cookie("Authorization")
+		if err != nil {
+			h.logger.Errorf("failed to get cookie: %v", err)
+			c.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		// Проверяем наличие ключа в заголовке
-		hashKey := c.GetHeader("HashSHA256")
-
-		if !checkHashKey(hashKey, h.hashKey) {
-			c.Writer.WriteHeader(http.StatusBadRequest)
+		login, err := h.server.ValidateToken(cookie)
+		if err != nil {
+			h.logger.Errorf("failed to validate token: %v", err)
+			c.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+
+		c.Set("login", login)
 
 		c.Next()
 	}
-}
-
-func checkHashKey(hash string, key string) bool {
-	bytes, err := hex.DecodeString(hash)
-	if err != nil {
-		return false
-	}
-
-	h := hmac.New(sha256.New, []byte(key))
-	_, err = h.Write(bytes)
-	if err != nil {
-		return false
-	}
-
-	return hmac.Equal(h.Sum(nil), bytes)
 }

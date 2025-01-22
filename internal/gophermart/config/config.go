@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	Secret    string          `mapstructure:"secret"`
 	Server    ServerConfig    `mapstructure:"run"`
 	DB        DatabaseConfig  `mapstructure:"database"`
 	Migration MigrationConfig `mapstructure:"migration"`
