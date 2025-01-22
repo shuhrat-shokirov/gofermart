@@ -100,6 +100,7 @@ func (h *handler) validationJWTMiddleware() gin.HandlerFunc {
 		if err != nil {
 			h.logger.Errorf("failed to get cookie: %v", err)
 			c.Writer.WriteHeader(http.StatusUnauthorized)
+			c.Abort()
 			return
 		}
 
@@ -107,6 +108,7 @@ func (h *handler) validationJWTMiddleware() gin.HandlerFunc {
 		if err != nil {
 			h.logger.Errorf("failed to validate token: %v", err)
 			c.Writer.WriteHeader(http.StatusUnauthorized)
+			c.Abort()
 			return
 		}
 
