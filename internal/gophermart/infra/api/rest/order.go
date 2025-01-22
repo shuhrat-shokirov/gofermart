@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -66,19 +65,5 @@ func (h *handler) userOrders(c *gin.Context) {
 		return
 	}
 
-	bytes, err := json.Marshal(orders)
-	if err != nil {
-		h.logger.Errorf("failed to marshal response: %v", err)
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	c.Writer.WriteHeader(http.StatusOK)
-	c.Header("Content-Type", "application/json")
-	_, err = c.Writer.Write(bytes)
-	if err != nil {
-		h.logger.Errorf("failed to write response: %v", err)
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	c.JSON(http.StatusOK, orders)
 }

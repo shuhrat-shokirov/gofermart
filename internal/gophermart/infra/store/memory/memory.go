@@ -108,7 +108,7 @@ func (s *Memory) GetUserOrders(ctx context.Context, login string) ([]model.Order
 			orders = append(orders, model.Order{
 				Number:     id,
 				Status:     order.Status,
-				Accrual:    order.Amount,
+				Accrual:    float32(order.Amount),
 				UploadedAt: order.CreatedAt,
 			})
 		}
