@@ -34,7 +34,7 @@ func (h *handler) userRegister(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
 
-	c.SetCookie("Authorization", token, cookieMaxAge, "/", "localhost", true, true)
+	c.SetCookie("Authorization", token, cookieMaxAge, "/", "", false, true)
 
 	c.Writer.WriteHeader(http.StatusOK)
 }
@@ -59,7 +59,7 @@ func (h *handler) userLogin(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
 
-	c.SetCookie("Authorization", token, cookieMaxAge, "/", "localhost", true, true)
+	c.SetCookie("Authorization", token, cookieMaxAge, "/", "", false, true)
 
 	c.Writer.WriteHeader(http.StatusOK)
 }
