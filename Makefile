@@ -29,3 +29,8 @@ _golangci-lint-rm-unformatted-report: _golangci-lint-format-report
 .PHONY: golangci-lint-clean
 golangci-lint-clean:
 	sudo rm -rf ./golangci-lint
+
+create-migration:
+	@read -p "Введите сервис (accrual/gophermart): " service; \
+	read -p "Введите имя миграции: " name; \
+	migrate create -ext sql -dir internal/$$service/migrations -seq -digits 2 $$name
