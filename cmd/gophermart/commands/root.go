@@ -64,6 +64,8 @@ var rootCmd = &cobra.Command{
 			logger.Fatal("can't create store", zap.Error(err))
 		}
 
+		(*logger.Sugar()).Infof("client address: %s", cfg.Accrual.System.Address)
+
 		newClient := client.NewClient(cfg.Accrual.System.Address, cfg.Accrual.System.Limit)
 
 		newApplication := application.NewApplication(application.Config{

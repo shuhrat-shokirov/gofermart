@@ -26,7 +26,7 @@ func NewClient(addr string, limit int64) Client {
 
 	return &handler{
 		client: req.NewClient().
-			SetBaseURL(fmt.Sprintf("http://%s/api/orders", addr)).
+			SetBaseURL(fmt.Sprintf("%s/api/orders", addr)).
 			SetCommonContentType("application/json").
 			SetTimeout(timeout),
 		ch: make(chan struct{}, limit),
