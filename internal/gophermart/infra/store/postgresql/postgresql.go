@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 
 	"gofermart/internal/gophermart/core/repositories"
 )
@@ -19,10 +20,11 @@ type Config struct {
 }
 
 type Postgresql struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger zap.SugaredLogger
 }
 
-func New(dsn string) (*Postgresql, error) {
+func New(dsn string, logger zap.SugaredLogger) (*Postgresql, error) {
 	ctx := context.TODO()
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
@@ -38,7 +40,7 @@ func New(dsn string) (*Postgresql, error) {
 		return nil, fmt.Errorf("can't create tables: %w", err)
 	}
 
-	return &Postgresql{pool: pool}, nil
+	return &Postgresql{pool: pool, logger: logger}, nil
 }
 
 func (p *Postgresql) Ping(ctx context.Context) error {

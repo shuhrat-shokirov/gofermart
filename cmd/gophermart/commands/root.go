@@ -59,6 +59,7 @@ var rootCmd = &cobra.Command{
 		newStore, err := store.NewStore(store.Config{
 			Memory:     memoryConfig,
 			Postgresql: dbConfig,
+			Logger:     *logger.Sugar(),
 		})
 		if err != nil {
 			logger.Fatal("can't create store", zap.Error(err))

@@ -9,6 +9,9 @@ import (
 
 //nolint:gocritic,goconst,nolintlint
 func (p *Postgresql) GetUserBalance(ctx context.Context, login string) (model.UserBalance, error) {
+
+	p.logger.Infow("get user balance", "login", login)
+
 	query := `SELECT amount, withdraw FROM balance WHERE login = $1;`
 
 	var balance model.UserBalance

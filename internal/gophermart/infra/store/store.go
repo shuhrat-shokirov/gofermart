@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"go.uber.org/zap"
+
 	"gofermart/internal/gophermart/core/model"
 	"gofermart/internal/gophermart/infra/store/memory"
 	"gofermart/internal/gophermart/infra/store/postgresql"
@@ -13,6 +15,7 @@ import (
 type Config struct {
 	Memory     *memory.Config
 	Postgresql *postgresql.Config
+	Logger     zap.SugaredLogger
 }
 
 type Store interface {
@@ -38,7 +41,7 @@ type Store interface {
 func NewStore(conf Config) (Store, error) {
 	switch {
 	case conf.Postgresql != nil:
-		store, err := postgresql.New(conf.Postgresql.Dsn)
+		store, err := postgresql.New(conf.Postgresql.Dsn, zap.SugaredLogger{})
 		if err != nil {
 			return nil, fmt.Errorf("can't create postgresql store: %w", err)
 		}

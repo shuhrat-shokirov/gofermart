@@ -10,6 +10,8 @@ import (
 )
 
 func (p *Postgresql) SaveOrder(ctx context.Context, login string, request model.OrderRequest) error {
+	p.logger.Infow("save order", "login", login, "order_id", request.ID, "status", request.Status)
+
 	query := `INSERT INTO orders (login, order_id, status, created_at) VALUES ($1, $2, $3, $4);`
 
 	return retry(func() error {
@@ -23,6 +25,8 @@ func (p *Postgresql) SaveOrder(ctx context.Context, login string, request model.
 }
 
 func (p *Postgresql) SetBalance(ctx context.Context, orderID, status string, amount int) error {
+	p.logger.Infow("set balance", "order_id", orderID, "status", status, "amount", amount)
+
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("can't begin transaction: %w", err)

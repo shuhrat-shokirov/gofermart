@@ -9,6 +9,8 @@ import (
 )
 
 func (p *Postgresql) UserWithdraw(ctx context.Context, login string, request model.Withdraw) error {
+	p.logger.Infow("withdraw", "login", login, "amount", request.Amount, "order_id", request.OrderID)
+
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("can't begin transaction: %w", err)
