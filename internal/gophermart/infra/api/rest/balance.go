@@ -19,5 +19,5 @@ func (h *handler) userBalance(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"balance": balance})
+	c.JSON(http.StatusOK, balance)
 }

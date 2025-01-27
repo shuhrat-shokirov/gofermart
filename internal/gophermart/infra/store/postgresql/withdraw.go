@@ -27,9 +27,7 @@ func (p *Postgresql) UserWithdraw(ctx context.Context, login string, request mod
 	queryGetBalance := `select amount from balance where login = $1;`
 
 	var amount int
-	err = retry(func() error {
-		return tx.QueryRow(ctx, queryGetBalance, login).Scan(&amount)
-	})
+	err = tx.QueryRow(ctx, queryGetBalance, login).Scan(&amount)
 	if err != nil {
 		return fmt.Errorf("can't query: %w", err)
 	}
@@ -41,29 +39,14 @@ func (p *Postgresql) UserWithdraw(ctx context.Context, login string, request mod
 	queryBalance := `update balance set amount = amount - $1, withdraw = withdraw + $1 
                where login = $2;`
 
-	err = retry(func() error {
-		_, err := tx.Exec(ctx, queryBalance, request.Amount, login)
-		if err != nil {
-			return fmt.Errorf("can't exec: %w", err)
-		}
-
-		return nil
-	})
+	_, err = tx.Exec(ctx, queryBalance, request.Amount, login)
 	if err != nil {
 		return fmt.Errorf("can't exec: %w", err)
 	}
 
 	queryWithdraw := `insert into withdraw (login, amount, order_id) values ($1, $2, $3);`
 
-	err = retry(func() error {
-		_, err := tx.Exec(ctx, queryWithdraw, login, request.Amount, request.OrderID)
-		if err != nil {
-			return fmt.Errorf("can't exec: %w", err)
-		}
-
-		return nil
-	})
-
+	_, err = tx.Exec(ctx, queryWithdraw, login, request.Amount, request.OrderID)
 	if err != nil {
 		return fmt.Errorf("can't exec: %w", err)
 	}

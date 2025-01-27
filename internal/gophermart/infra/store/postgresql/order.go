@@ -43,22 +43,13 @@ func (p *Postgresql) SetBalance(ctx context.Context, orderID, status string, amo
 	queryOrder := `update orders set status = $1, amount = $2, updated_at = now() where order_id = $3 returning login;`
 
 	var userLogin string
-	err = retry(func() error {
-		return tx.QueryRow(ctx, queryOrder, status, amount, orderID).Scan(&userLogin)
-	})
+	err = tx.QueryRow(ctx, queryOrder, status, amount, orderID).Scan(&userLogin)
 	if err != nil {
 		return fmt.Errorf("can't query: %w", err)
 	}
 
 	queryBalance := `update balance set amount = amount + $1, updated_at = now() where login = $2;`
-	err = retry(func() error {
-		_, err := tx.Exec(ctx, queryBalance, amount, userLogin)
-		if err != nil {
-			return fmt.Errorf("can't exec: %w", err)
-		}
-
-		return nil
-	})
+	_, err = tx.Exec(ctx, queryBalance, amount, userLogin)
 	if err != nil {
 		return fmt.Errorf("can't exec: %w", err)
 	}
