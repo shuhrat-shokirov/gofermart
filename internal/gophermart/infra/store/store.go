@@ -23,7 +23,6 @@ type Store interface {
 	GetUserPassword(ctx context.Context, login string) (string, error)
 
 	SaveOrder(ctx context.Context, login string, request model.OrderRequest) error
-	UpdateOrder(ctx context.Context, orderID string, status string) error
 	SetBalance(ctx context.Context, orderID, status string, amount int) error
 
 	GetOrderLogin(ctx context.Context, orderID string) (string, error)

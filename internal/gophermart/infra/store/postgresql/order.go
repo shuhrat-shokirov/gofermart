@@ -22,19 +22,6 @@ func (p *Postgresql) SaveOrder(ctx context.Context, login string, request model.
 	})
 }
 
-func (p *Postgresql) UpdateOrder(ctx context.Context, orderID string, status string) error {
-	query := `UPDATE orders SET status = $1, updated_at = now() WHERE order_id = $3;`
-
-	return retry(func() error {
-		_, err := p.pool.Exec(ctx, query, status, orderID)
-		if err != nil {
-			return fmt.Errorf("can't exec: %w", err)
-		}
-
-		return nil
-	})
-}
-
 func (p *Postgresql) SetBalance(ctx context.Context, orderID, status string, amount int) error {
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {

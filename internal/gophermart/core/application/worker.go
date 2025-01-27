@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"gofermart/internal/gophermart/core/client"
-	"gofermart/internal/gophermart/core/model"
 )
 
 func (a *Application) handleOrders(ctx context.Context) {
@@ -31,14 +30,6 @@ func (a *Application) handleOrders(ctx context.Context) {
 			}
 
 			a.logger.Errorf("can't send order %s: %v", order.OrderID, err)
-			continue
-		}
-
-		if resp.Status != model.OrderStatusDone {
-			if err := a.repo.UpdateOrder(ctx, order.OrderID, resp.Status); err != nil {
-				a.logger.Errorf("can't save order status %s: %v", order.OrderID, err)
-			}
-
 			continue
 		}
 

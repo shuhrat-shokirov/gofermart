@@ -157,21 +157,6 @@ func (s *Memory) GetPendingOrders(ctx context.Context) ([]model.Order, error) {
 	return orders, nil
 }
 
-func (s *Memory) UpdateOrder(ctx context.Context, orderID string, status string) error {
-	s.orderMu.Lock()
-	defer s.orderMu.Unlock()
-
-	order, ok := s.orders[orderID]
-	if !ok {
-		return repositories.ErrNotFound
-	}
-
-	order.Status = status
-	s.orders[orderID] = order
-
-	return nil
-}
-
 func (s *Memory) SetBalance(ctx context.Context, orderID, status string, amount int) error {
 	s.userBMu.Lock()
 	defer s.userBMu.Unlock()
