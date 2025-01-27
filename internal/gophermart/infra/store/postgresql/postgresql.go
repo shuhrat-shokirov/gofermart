@@ -18,8 +18,20 @@ type Config struct {
 	Dsn string
 }
 
+type PgxPool interface {
+	Ping(ctx context.Context) error
+	Close()
+
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
+
+	Begin(ctx context.Context) (pgx.Tx, error)
+
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
+}
+
 type Postgresql struct {
-	pool *pgxpool.Pool
+	pool PgxPool
 }
 
 func New(dsn string) (*Postgresql, error) {

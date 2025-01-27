@@ -4,7 +4,6 @@ import "time"
 
 type OrderRequest struct {
 	ID     string
-	Login  string
 	Status string
 }
 
