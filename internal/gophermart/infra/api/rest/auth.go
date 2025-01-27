@@ -32,6 +32,7 @@ func (h *handler) userRegister(c *gin.Context) {
 
 		h.logger.Errorf("failed to register user: %v", err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	c.SetCookie("Authorization", token, cookieMaxAge, "/", "", false, true)

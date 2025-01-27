@@ -62,7 +62,11 @@ func (p *Postgresql) SetBalance(ctx context.Context, orderID, status string, amo
 	queryBalance := `update balance set amount = amount + $1, updated_at = now() where login = $2;`
 	err = retry(func() error {
 		_, err := tx.Exec(ctx, queryBalance, amount, userLogin)
-		return fmt.Errorf("can't exec: %w", err)
+		if err != nil {
+			return fmt.Errorf("can't exec: %w", err)
+		}
+
+		return nil
 	})
 	if err != nil {
 		return fmt.Errorf("can't exec: %w", err)

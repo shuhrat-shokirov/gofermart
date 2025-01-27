@@ -23,19 +23,28 @@ func (p *Postgresql) CreateUser(ctx context.Context, login, password string) err
 
 	err = retry(func() error {
 		_, err := tx.Exec(ctx, query, login, password)
-		return fmt.Errorf("can't exec: %w", err)
+		if err != nil {
+			return fmt.Errorf("can't exec: %w", err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("can't exec: %w", err)
+		return fmt.Errorf("can't add user: %w", err)
 	}
 
-	createBalanceQuery := `INSERT INTO balance (login) VALUES ($1);`
+	createBalanceQuery := `INSERT INTO balance (login1) VALUES ($1);`
 	err = retry(func() error {
 		_, err := tx.Exec(ctx, createBalanceQuery, login)
-		return fmt.Errorf("can't exec: %w", err)
+		if err != nil {
+			return fmt.Errorf("can't exec: %w", err)
+		}
+
+		return nil
 	})
+
 	if err != nil {
-		return fmt.Errorf("can't exec: %w", err)
+		return fmt.Errorf("can't add balance : %w", err)
 	}
 
 	return nil
