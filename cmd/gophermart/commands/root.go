@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -74,10 +75,17 @@ var rootCmd = &cobra.Command{
 			Secret: cfg.Secret,
 		})
 
+		const (
+			pollInterval = time.Second
+		)
+
+		poll := time.NewTicker(pollInterval)
+		defer poll.Stop()
+
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		go newApplication.RunWorker(ctx)
+		go newApplication.RunWorker(ctx, poll.C)
 
 		api := rest.NewRouter(rest.Config{
 			Server: newApplication,

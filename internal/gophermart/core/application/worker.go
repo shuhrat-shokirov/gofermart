@@ -9,8 +9,6 @@ import (
 )
 
 func (a *Application) handleOrders(ctx context.Context) {
-	a.logger.Info("worker started")
-
 	orders, err := a.repo.GetPendingOrders(ctx)
 	if err != nil {
 		a.logger.Errorf("can't get orders: %v", err)
