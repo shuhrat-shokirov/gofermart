@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"gofermart/internal/gophermart/core/model"
-	"gofermart/internal/gophermart/core/repositories"
 )
 
 func (p *Postgresql) UserWithdraw(ctx context.Context, login string, request model.Withdraw) error {
@@ -23,18 +22,6 @@ func (p *Postgresql) UserWithdraw(ctx context.Context, login string, request mod
 		}
 		_ = tx.Commit(ctx)
 	}()
-
-	queryGetBalance := `select amount from balance where login = $1;`
-
-	var amount int
-	err = tx.QueryRow(ctx, queryGetBalance, login).Scan(&amount)
-	if err != nil {
-		return fmt.Errorf("can't query: %w", err)
-	}
-
-	if amount < request.Amount {
-		return fmt.Errorf("insufficient funds: %w", repositories.ErrInsufficientFunds)
-	}
 
 	queryBalance := `update balance set amount = amount - $1, withdraw = withdraw + $1 
                where login = $2;`

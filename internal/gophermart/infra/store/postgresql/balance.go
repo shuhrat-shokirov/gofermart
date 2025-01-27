@@ -23,5 +23,7 @@ func (p *Postgresql) GetUserBalance(ctx context.Context, login string) (model.Us
 		return model.UserBalance{}, fmt.Errorf("can't scan: %w", err)
 	}
 
+	p.logger.Infow("get user balance", "login", login, "amount", balance.Amount, "withdraw", balance.Withdraw)
+
 	return balance, nil
 }

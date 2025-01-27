@@ -19,5 +19,7 @@ func (h *handler) userBalance(c *gin.Context) {
 		return
 	}
 
+	h.logger.Infof("User %s has balance: %v", login, balance)
+
 	c.JSON(http.StatusOK, balance)
 }
