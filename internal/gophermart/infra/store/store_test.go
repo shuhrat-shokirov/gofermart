@@ -10,7 +10,6 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
-
 	t.Run("empty dns", func(t *testing.T) {
 		store, err := NewStore(Config{
 			Postgresql: &postgresql.Config{},
