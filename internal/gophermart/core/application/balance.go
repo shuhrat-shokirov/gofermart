@@ -14,7 +14,7 @@ func (a *Application) UserBalance(ctx context.Context, login string) (model.User
 	}
 
 	return model.UserBalanceResponse{
-		Current:  convertToPounds(balance.Amount),
-		Withdraw: convertToPounds(balance.Withdraw),
+		Current:   convertToPounds(balance.Amount),
+		Withdrawn: convertToPounds(balance.Withdraw),
 	}, nil
 }
