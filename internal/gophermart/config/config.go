@@ -30,6 +30,7 @@ type MigrationConfig struct {
 type AccrualConfig struct {
 	System struct {
 		Address string `mapstructure:"address"`
+		Limit   int64  `mapstructure:"limit"`
 	} `mapstructure:"system"`
 }
 

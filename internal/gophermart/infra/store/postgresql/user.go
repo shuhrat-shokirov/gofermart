@@ -8,14 +8,37 @@ import (
 func (p *Postgresql) CreateUser(ctx context.Context, login, password string) error {
 	query := `INSERT INTO users (login, password) VALUES ($1, $2);`
 
-	return retry(func() error {
-		_, err := p.pool.Exec(ctx, query, login, password)
-		if err != nil {
-			return fmt.Errorf("can't exec: %w", err)
-		}
+	tx, err := p.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("can't begin transaction: %w", err)
+	}
 
-		return nil
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return
+		}
+		_ = tx.Commit(ctx)
+	}()
+
+	err = retry(func() error {
+		_, err := tx.Exec(ctx, query, login, password)
+		return fmt.Errorf("can't exec: %w", err)
 	})
+	if err != nil {
+		return fmt.Errorf("can't exec: %w", err)
+	}
+
+	createBalanceQuery := `INSERT INTO balance (login) VALUES ($1);`
+	err = retry(func() error {
+		_, err := tx.Exec(ctx, createBalanceQuery, login)
+		return fmt.Errorf("can't exec: %w", err)
+	})
+	if err != nil {
+		return fmt.Errorf("can't exec: %w", err)
+	}
+
+	return nil
 }
 
 func (p *Postgresql) GetUserPassword(ctx context.Context, login string) (string, error) {

@@ -1,18 +1,21 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
 	"gofermart/internal/gophermart/config"
 	"gofermart/internal/gophermart/core/application"
+	"gofermart/internal/gophermart/core/client"
 	"gofermart/internal/gophermart/infra/api/rest"
 	"gofermart/internal/gophermart/infra/store"
 	"gofermart/internal/gophermart/infra/store/memory"
@@ -61,7 +64,26 @@ var rootCmd = &cobra.Command{
 			logger.Fatal("can't create store", zap.Error(err))
 		}
 
-		newApplication := application.NewApplication(cfg.Secret, newStore)
+		newClient := client.NewClient(cfg.Accrual.System.Address, cfg.Accrual.System.Limit)
+
+		newApplication := application.NewApplication(application.Config{
+			Repo:   newStore,
+			Client: newClient,
+			Logger: *logger.Sugar(),
+			Secret: cfg.Secret,
+		})
+
+		const (
+			pollInterval = 5 * time.Second
+		)
+
+		poll := time.NewTicker(pollInterval)
+		defer poll.Stop()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		go newApplication.RunWorker(ctx, poll.C)
 
 		api := rest.NewRouter(rest.Config{
 			Server: newApplication,

@@ -30,6 +30,27 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) error {
 	    CONSTRAINT orders_id_key UNIQUE (order_id)
 );`
 
+	balanceTable := `
+	CREATE TABLE IF NOT EXISTS balance (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    login VARCHAR(255) NOT NULL,
+	    amount bigint NOT NULL default 0 CHECK (amount >= 0),
+	    withdraw bigint NOT NULL default 0,
+	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	    CONSTRAINT balance_login_key UNIQUE (login)
+);`
+
+	withdrawTable := `
+	CREATE TABLE IF NOT EXISTS withdraw (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    login VARCHAR(255) NOT NULL,
+	    amount bigint NOT NULL default 0 CHECK (amount > 0),
+	    order_id VARCHAR(255) NOT NULL,
+	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	    CONSTRAINT withdraw_order_id_key UNIQUE (order_id)
+);`
+
 	tx, err := pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("err starting transaction: %w", err)
@@ -43,6 +64,16 @@ func createTables(ctx context.Context, pool *pgxpool.Pool) error {
 	if _, err := tx.Exec(ctx, orderTable); err != nil {
 		_ = tx.Rollback(ctx)
 		return fmt.Errorf("err creating orders table: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, balanceTable); err != nil {
+		_ = tx.Rollback(ctx)
+		return fmt.Errorf("err creating balance table: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, withdrawTable); err != nil {
+		_ = tx.Rollback(ctx)
+		return fmt.Errorf("err creating withdraw table: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {

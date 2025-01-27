@@ -112,7 +112,7 @@ func (h *handler) validationJWTMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("login", login)
+		c.Set(loginKey, login)
 
 		c.Next()
 	}

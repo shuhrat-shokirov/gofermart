@@ -23,8 +23,17 @@ type Store interface {
 	GetUserPassword(ctx context.Context, login string) (string, error)
 
 	SaveOrder(ctx context.Context, login string, request model.OrderRequest) error
+	UpdateOrder(ctx context.Context, orderID string, status string) error
+	SetBalance(ctx context.Context, orderID, status string, amount int) error
+
 	GetOrderLogin(ctx context.Context, orderID string) (string, error)
 	GetUserOrders(ctx context.Context, login string) ([]model.Order, error)
+	GetPendingOrders(ctx context.Context) ([]model.Order, error)
+
+	GetUserBalance(ctx context.Context, login string) (model.UserBalance, error)
+
+	UserWithdraw(ctx context.Context, login string, request model.Withdraw) error
+	GetUserWithdrawals(ctx context.Context, login string) ([]model.Withdraw, error)
 }
 
 func NewStore(conf Config) (Store, error) {

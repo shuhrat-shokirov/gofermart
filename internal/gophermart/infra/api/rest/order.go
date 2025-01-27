@@ -23,7 +23,7 @@ func (h *handler) userOrder(c *gin.Context) {
 		return
 	}
 
-	login := c.GetString("login")
+	login := c.GetString(loginKey)
 
 	err = h.server.UserOrder(context.TODO(), login, string(body))
 	if err != nil {
@@ -51,17 +51,17 @@ func (h *handler) userOrder(c *gin.Context) {
 }
 
 func (h *handler) userOrders(c *gin.Context) {
-	login := c.GetString("login")
+	login := c.GetString(loginKey)
 
 	orders, err := h.server.UserOrders(context.TODO(), login)
 	if err != nil {
+		if errors.Is(err, application.ErrNotFound) {
+			c.Writer.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		h.logger.Errorf("failed to get orders: %v", err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if len(orders) == 0 {
-		c.Writer.WriteHeader(http.StatusNoContent)
 		return
 	}
 

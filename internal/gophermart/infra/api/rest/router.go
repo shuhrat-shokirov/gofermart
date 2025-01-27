@@ -17,7 +17,12 @@ type ServerService interface {
 	ValidateToken(tokenString string) (string, error)
 
 	UserOrder(ctx context.Context, userLogin, orderID string) error
-	UserOrders(ctx context.Context, userLogin string) ([]model.Order, error)
+	UserOrders(ctx context.Context, userLogin string) ([]model.OrderResponse, error)
+
+	UserBalance(ctx context.Context, login string) (model.UserBalanceResponse, error)
+
+	UserWithdraw(ctx context.Context, login string, request model.WithdrawRequest) error
+	UserWithdrawals(ctx context.Context, login string) ([]model.WithdrawResponse, error)
 }
 
 type Config struct {
@@ -58,6 +63,19 @@ func NewRouter(conf Config) *Router {
 		ordersGroup.Use(h.validationJWTMiddleware())
 		ordersGroup.POST("", h.userOrder)
 		ordersGroup.GET("", h.userOrders)
+	}
+
+	balanceGroup := router.Group("/api/user/balance")
+	{
+		balanceGroup.Use(h.validationJWTMiddleware())
+		balanceGroup.GET("", h.userBalance)
+		balanceGroup.POST("/withdraw", h.userWithdraw)
+	}
+
+	withdrawGroup := router.Group("/api/user/withdrawals")
+	{
+		withdrawGroup.Use(h.validationJWTMiddleware())
+		withdrawGroup.GET("", h.userWithdrawals)
 	}
 
 	h.logger.Infof("server started on port: %d", conf.Port)

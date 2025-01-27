@@ -9,13 +9,6 @@ import (
 	"gofermart/internal/gophermart/core/repositories"
 )
 
-const (
-	orderStatusNew        = "NEW"
-	orderStatusInProgress = "PROCESSING"
-	orderStatusDone       = "PROCESSED"
-	orderStatusFailed     = "INVALID"
-)
-
 func (a *Application) UserOrder(ctx context.Context, userLogin, orderID string) error {
 	if !isValidOrderID(orderID) {
 		return fmt.Errorf("invalid order id: %w", ErrInvalidOrderID)
@@ -24,7 +17,7 @@ func (a *Application) UserOrder(ctx context.Context, userLogin, orderID string) 
 	if err := a.repo.SaveOrder(ctx, userLogin, model.OrderRequest{
 		ID:     orderID,
 		Login:  userLogin,
-		Status: orderStatusNew,
+		Status: model.OrderStatusNew,
 	}); err != nil {
 		if errors.Is(err, repositories.ErrDuplicate) {
 			login, err := a.repo.GetOrderLogin(ctx, orderID)
@@ -63,11 +56,25 @@ func isValidOrderID(orderID string) bool {
 	return sum%10 == 0
 }
 
-func (a *Application) UserOrders(ctx context.Context, userLogin string) ([]model.Order, error) {
+func (a *Application) UserOrders(ctx context.Context, userLogin string) ([]model.OrderResponse, error) {
 	orders, err := a.repo.GetUserOrders(ctx, userLogin)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user orders: %w", err)
 	}
 
-	return orders, nil
+	var response = make([]model.OrderResponse, 0, len(orders))
+	for _, order := range orders {
+		response = append(response, model.OrderResponse{
+			Number:     order.OrderID,
+			Accrual:    convertToPounds(order.Amount),
+			Status:     order.Status,
+			UploadedAt: order.CreatedAt,
+		})
+	}
+
+	if len(response) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return response, nil
 }
