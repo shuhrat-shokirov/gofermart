@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -75,17 +74,10 @@ var rootCmd = &cobra.Command{
 			Secret: cfg.Secret,
 		})
 
-		const (
-			pollInterval = 5 * time.Second
-		)
-
-		poll := time.NewTicker(pollInterval)
-		defer poll.Stop()
-
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		go newApplication.RunWorker(ctx, poll.C)
+		go newApplication.RunWorker(ctx)
 
 		api := rest.NewRouter(rest.Config{
 			Server: newApplication,
@@ -98,6 +90,7 @@ var rootCmd = &cobra.Command{
 
 		go func() {
 			<-stop
+			cancel()
 			if err := newStore.Close(); err != nil {
 				logger.Error("can't close store", zap.Error(err))
 			}

@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -54,13 +53,13 @@ func NewApplication(conf Config) *Application {
 	}
 }
 
-func (a *Application) RunWorker(ctx context.Context, poolChan <-chan time.Time) {
+func (a *Application) RunWorker(ctx context.Context) {
 	for {
 		select {
-		case <-poolChan:
-			a.handleOrders(ctx)
 		case <-ctx.Done():
 			return
+		default:
+			a.handleOrders(ctx)
 		}
 	}
 }
