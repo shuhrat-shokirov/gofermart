@@ -16,7 +16,6 @@ func (a *Application) UserOrder(ctx context.Context, userLogin, orderID string) 
 
 	if err := a.repo.SaveOrder(ctx, userLogin, model.OrderRequest{
 		ID:     orderID,
-		Login:  userLogin,
 		Status: model.OrderStatusNew,
 	}); err != nil {
 		if errors.Is(err, repositories.ErrDuplicate) {
