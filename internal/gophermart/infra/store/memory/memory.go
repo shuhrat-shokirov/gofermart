@@ -38,7 +38,7 @@ type UserBalance struct {
 
 type Withdraw struct {
 	CreatedAt time.Time
-	OrderID   string
+	Login     string
 	Amount    int
 }
 
@@ -47,6 +47,7 @@ func New() (*Memory, error) {
 		mu:          &sync.Mutex{},
 		orderMu:     &sync.Mutex{},
 		userBMu:     &sync.Mutex{},
+		withdrawMu:  &sync.Mutex{},
 		users:       make(map[string]string),
 		orders:      make(map[string]Order),
 		userBalance: make(map[string]UserBalance),
@@ -66,11 +67,15 @@ func (s *Memory) CreateUser(ctx context.Context, login, password string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.userBMu.Lock()
+	defer s.userBMu.Unlock()
+
 	if _, ok := s.users[login]; ok {
 		return repositories.ErrDuplicate
 	}
 
 	s.users[login] = password
+	s.userBalance[login] = UserBalance{}
 
 	return nil
 }
@@ -221,7 +226,7 @@ func (s *Memory) UserWithdraw(ctx context.Context, login string, request model.W
 	}
 
 	s.withdraws[request.OrderID] = Withdraw{
-		OrderID:   request.OrderID,
+		Login:     login,
 		Amount:    request.Amount,
 		CreatedAt: time.Now(),
 	}
@@ -234,10 +239,10 @@ func (s *Memory) GetUserWithdrawals(ctx context.Context, login string) ([]model.
 	defer s.withdrawMu.Unlock()
 
 	var withdrawals []model.Withdraw
-	for _, withdraw := range s.withdraws {
-		if withdraw.OrderID == login {
+	for orderID, withdraw := range s.withdraws {
+		if withdraw.Login == login {
 			withdrawals = append(withdrawals, model.Withdraw{
-				OrderID:   withdraw.OrderID,
+				OrderID:   orderID,
 				Amount:    withdraw.Amount,
 				CreatedAt: withdraw.CreatedAt,
 			})

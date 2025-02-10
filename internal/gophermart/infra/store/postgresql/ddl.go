@@ -3,11 +3,9 @@ package postgresql
 import (
 	"context"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func createTables(ctx context.Context, pool *pgxpool.Pool) error {
+func createTables(ctx context.Context, pool PgxPool) error {
 	userTable := `
 	CREATE TABLE IF NOT EXISTS users (
 	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
