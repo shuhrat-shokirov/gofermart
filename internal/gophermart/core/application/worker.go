@@ -60,6 +60,12 @@ func (a *Application) handleOrders(ctx context.Context) {
 }
 
 func (a *Application) processOrder(ctx context.Context, order model.Order) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
 	resp, err := a.client.SendOrder(ctx, order.OrderID)
 	if err != nil {
 		if errors.Is(err, client.ErrTooManyRequests) {
