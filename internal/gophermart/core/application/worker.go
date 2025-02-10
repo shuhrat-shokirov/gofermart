@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"gofermart/internal/gophermart/core/client"
@@ -28,7 +29,7 @@ func (a *Application) handleOrders(ctx context.Context) {
 		maxWorkers = 5
 	)
 
-	for i := 0; i < maxWorkers; i++ {
+	for range maxWorkers {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -52,7 +53,7 @@ func (a *Application) handleOrders(ctx context.Context) {
 	close(results)
 
 	for err := range results {
-		if err != nil {
+		if err != nil && !errors.Is(err, client.ErrTooManyRequests) {
 			a.logger.Errorf("can't process order: %v", err)
 		}
 	}
@@ -62,13 +63,12 @@ func (a *Application) processOrder(ctx context.Context, order model.Order) error
 	resp, err := a.client.SendOrder(ctx, order.OrderID)
 	if err != nil {
 		if errors.Is(err, client.ErrTooManyRequests) {
-			return err
+			return fmt.Errorf("can't send order %s: %w", order.OrderID, err)
 		}
 		if errors.Is(err, ErrNotFound) {
 			return nil
 		}
-		a.logger.Errorf("can't send order %s: %v", order.OrderID, err)
-		return err
+		return fmt.Errorf("can't send order %s: %w", order.OrderID, err)
 	}
 
 	var amount int
@@ -77,8 +77,7 @@ func (a *Application) processOrder(ctx context.Context, order model.Order) error
 	}
 
 	if err := a.repo.SetBalance(ctx, order.OrderID, resp.Status, amount); err != nil {
-		a.logger.Errorf("can't save balance %s: %v", order.OrderID, err)
-		return err
+		return fmt.Errorf("can't save balance %s: %w", order.OrderID, err)
 	}
 
 	return nil
