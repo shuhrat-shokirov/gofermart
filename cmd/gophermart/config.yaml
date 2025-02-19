@@ -1,0 +1,9 @@
+run:
+  address: localhost:8080
+
+database:
+  uri: "postgresql://postgres:postgres@localhost:5432/gopher_mart_db"
+
+accrual:
+  system:
+    address: "localhost:8081"
